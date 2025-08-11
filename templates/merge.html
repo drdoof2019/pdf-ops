@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block title %}Merge PDFs{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Merge PDF Files</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="card-text">Drag and drop your PDF files into the area below, or click to select them. You can reorder them by dragging the file names.</p>
+            <div id="drop-zone" class="drop-zone border border-dashed rounded p-4 text-center mb-3">
+                <p class="mb-0">Drag & Drop PDFs here or Click to Browse</p>
+                <input type="file" id="file-input" accept=".pdf" multiple style="display: none;">
+            </div>
+
+            <div id="file-list-container" class="mb-3" style="display: none;">
+                <h5>Files to Merge (Drag to Reorder):</h5>
+                <ul id="file-list" class="list-group">
+                    <!-- Files will be added here by JavaScript -->
+                </ul>
+            </div>
+
+            <button id="merge-btn" class="btn btn-primary" disabled>Merge PDFs</button>
+
+            <div id="progress-area" class="mt-4" style="display: none;">
+                <div class="progress">
+                    <div id="merge-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="text-center mt-2" id="progress-text">Merging your PDFs...</p>
+            </div>
+
+            <div id="download-area" class="mt-4" style="display: none;">
+                <div class="alert alert-success" role="alert">
+                    PDFs merged successfully!
+                </div>
+                <a id="download-link" href="#" class="btn btn-success" download>Download Merged PDF</a>
+            </div>
+
+            <div id="error-area" class="mt-4" style="display: none;">
+                <div class="alert alert-danger" role="alert">
+                    <span id="error-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/merge.js') }}"></script>
+{% endblock %}

@@ -1,3 +1,5 @@
 Flask
+Pillow
 pypdf
 PyMuPDF
+wfastcgi

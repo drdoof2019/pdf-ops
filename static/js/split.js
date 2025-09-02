@@ -17,8 +17,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadLinksList = document.getElementById('download-links-list');
     const errorArea = document.getElementById('error-area');
     const errorMessage = document.getElementById('error-message');
+    const captchaArea = document.getElementById('captcha-area');
+    const captchaQuestion = document.getElementById('captcha-question');
+    const captchaInput = document.getElementById('captcha-input');
 
     let selectedFile = null;
+
+    // Load CAPTCHA on page load
+    loadCaptcha();
+
+    async function loadCaptcha() {
+        try {
+            const response = await fetch('/api/captcha');
+            const data = await response.json();
+            if (response.ok) {
+                captchaQuestion.textContent = data.question;
+                captchaArea.style.display = 'block';
+            } else {
+                showError('Failed to load CAPTCHA. Please refresh the page.');
+            }
+        } catch (error) {
+            showError('Failed to load CAPTCHA. Please check your network and refresh.');
+        }
+    }
 
     // --- Event Listeners for Drop Zone ---
     dropZone.addEventListener('click', () => {
@@ -84,17 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function showError(message) {
         errorMessage.textContent = message;
         errorArea.style.display = 'block';
-        hideDownloadAndError();
     }
 
     // --- Split Button Click Handler ---
     splitBtn.addEventListener('click', async () => {
-        hideDownloadAndError();
         if (!selectedFile) {
             showError('Please select a PDF file first.');
             return;
         }
 
+        if (!captchaInput.value) {
+            showError('Please solve the CAPTCHA before splitting.');
+            return;
+        }
+
+        hideDownloadAndError();
         splitBtn.setAttribute('disabled', 'disabled');
         splitBtn.textContent = 'Splitting...';
         progressArea.style.display = 'block';
@@ -120,16 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('page_ranges', pageRanges);
         }
 
+        // Append CAPTCHA answer
+        formData.append('captcha_answer', captchaInput.value);
+
         try {
-            console.log('Sending split request...');
             const response = await fetch('/api/split', {
                 method: 'POST',
                 body: formData,
             });
 
-            console.log('Received response:', response);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (response.ok) {
                 downloadLinksList.innerHTML = ''; // Clear previous links
@@ -155,9 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showError(data.error || 'An unknown error occurred.');
                 progressArea.style.display = 'none';
+                // If CAPTCHA was wrong, load a new one
+                if (data.error && data.error.toLowerCase().includes('captcha')) {
+                    captchaInput.value = '';
+                    loadCaptcha();
+                }
             }
         } catch (error) {
-            console.error('Error during split:', error);
             showError('Network error or server is unreachable. Check console for details.');
             progressArea.style.display = 'none';
         } finally {

@@ -1,20 +1,20 @@
 {% extends 'layout.html' %}
 
-{% block title %}pdf.sivas.edu.tr - Online PDF Editor{% endblock %}
+{% block title %}sbtu.edu.tr - Online Tools{% endblock %}
 
 {% block content %}
     <div class="p-5 mb-4 bg-light rounded-3 text-center">
         <div class="container-fluid py-5">
-            <h1 class="display-5 fw-bold">SBTÜ Online PDF Editor</h1>
+            <h1 class="display-5 fw-bold">SBTÜ Online Tools</h1>
             <p class="col-md-8 fs-4 mx-auto">
-                Effortlessly merge, split, compress, and edit your PDF files online.
+                Effortlessly manage your documents and images with our free online tools.
                 Simple, fast, and secure.
             </p>
-            <a class="btn btn-primary btn-lg" href="/merge" role="button">Start Merging PDFs</a>
+            <a class="btn btn-primary btn-lg" href="/merge" role="button">Get Started</a>
         </div>
     </div>
 
-    <h2 class="text-center mb-4">Our PDF Tools</h2>
+    <h2 class="text-center mb-4">Our Tools</h2>
     <div class="row row-cols-1 row-cols-md-3 g-4">
         <div class="col">
             <div class="card h-100 text-center">
@@ -40,6 +40,24 @@
                     <h5 class="card-title">Compress PDF</h5>
                     <p class="card-text">Reduce the file size of your PDF documents.</p>
                     <a href="/compress" class="btn btn-outline-primary">Use Tool</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Convert Images</h5>
+                    <p class="card-text">Convert images between JPG, PNG, and WEBP formats.</p>
+                    <a href="/img2img" class="btn btn-outline-primary">Use Tool</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Images to PDF</h5>
+                    <p class="card-text">Combine multiple images into a single PDF file.</p>
+                    <a href="/img2pdf" class="btn btn-outline-primary">Use Tool</a>
                 </div>
             </div>
         </div>

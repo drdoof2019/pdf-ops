@@ -11,14 +11,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressArea = document.getElementById('progress-area');
     const mergeProgressBar = document.getElementById('merge-progress-bar');
     const progressText = document.getElementById('progress-text');
+    const captchaArea = document.getElementById('captcha-area');
+    const captchaQuestion = document.getElementById('captcha-question');
+    const captchaInput = document.getElementById('captcha-input');
 
     let uploadedFiles = []; // Stores File objects
+
+    // Load CAPTCHA on page load
+    loadCaptcha();
 
     // Initialize SortableJS
     const sortable = Sortable.create(fileList, {
         animation: 150,
         ghostClass: 'blue-background-class'
     });
+
+    async function loadCaptcha() {
+        try {
+            const response = await fetch('/api/captcha');
+            const data = await response.json();
+            if (response.ok) {
+                captchaQuestion.textContent = data.question;
+                captchaArea.style.display = 'block';
+            } else {
+                showError('Failed to load CAPTCHA. Please refresh the page.');
+            }
+        } catch (error) {
+            showError('Failed to load CAPTCHA. Please check your network and refresh.');
+        }
+    }
 
     // --- Event Listeners for Drop Zone ---
     dropZone.addEventListener('click', () => {
@@ -109,11 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function showError(message) {
         errorMessage.textContent = message;
         errorArea.style.display = 'block';
-        hideDownloadAndError(); // Ensure download area is hidden on error
     }
 
     // --- Merge Button Click Handler ---
     mergeBtn.addEventListener('click', async () => {
+        if (!captchaInput.value) {
+            showError('Please solve the CAPTCHA before merging.');
+            return;
+        }
+
         hideDownloadAndError();
         mergeBtn.setAttribute('disabled', 'disabled');
         mergeBtn.textContent = 'Merging...'; // Simpler text for button
@@ -136,16 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('order[]', filename);
         });
 
+        // Append CAPTCHA answer
+        formData.append('captcha_answer', captchaInput.value);
+
         try {
-            console.log('Sending merge request...');
             const response = await fetch('/api/merge', {
                 method: 'POST',
                 body: formData,
             });
 
-            console.log('Received response:', response);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (response.ok) {
                 downloadLink.href = data.download_url;
@@ -153,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 mergeProgressBar.style.width = '100%'; // Set to 100% on success
                 mergeProgressBar.classList.remove('progress-bar-animated'); // Stop animation
                 progressText.textContent = 'Merge complete!';
-                // Optionally, hide progress area after a short delay or on download click
                 setTimeout(() => {
                     progressArea.style.display = 'none';
                 }, 3000); // Hide after 3 seconds
@@ -161,16 +185,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showError(data.error || 'An unknown error occurred.');
                 progressArea.style.display = 'none'; // Hide progress on error
+                // If CAPTCHA was wrong, load a new one
+                if (data.error && data.error.toLowerCase().includes('captcha')) {
+                    captchaInput.value = '';
+                    loadCaptcha();
+                }
             }
         } catch (error) {
-            console.error('Error during merge:', error);
             showError('Network error or server is unreachable. Check console for details.');
             progressArea.style.display = 'none'; // Hide progress on error
         } finally {
             mergeBtn.removeAttribute('disabled');
             mergeBtn.textContent = 'Merge PDFs';
-            // updateMergeButtonState(); // Re-evaluate button state after clearing files - this might re-disable if files are cleared.
-            // Keep files in list until user clears or new files are added.
         }
     });
 });

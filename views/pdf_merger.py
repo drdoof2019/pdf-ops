@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, jsonify, send_from_directory
+from flask import Blueprint, render_template, request, jsonify, send_from_directory, session
 from pypdf import PdfWriter
 from werkzeug.utils import secure_filename
 import uuid
@@ -20,6 +20,20 @@ def merge_pdfs():
     merger = None # Initialize merger here
 
     try:
+        # --- CAPTCHA Verification ---
+        user_answer = request.form.get('captcha_answer')
+        correct_answer = session.pop('captcha_answer', None)
+
+        if correct_answer is None:
+            return jsonify({'error': 'CAPTCHA session expired. Please refresh.'}), 400
+        
+        try:
+            if int(user_answer) != correct_answer:
+                return jsonify({'error': 'Invalid CAPTCHA answer.'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid CAPTCHA format.'}), 400
+        # --- End CAPTCHA Verification ---
+
         if 'files[]' not in request.files:
             return jsonify({'error': 'No files part'}), 400
 

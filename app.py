@@ -3,6 +3,8 @@ from views.main import main_bp
 from views.pdf_merger import pdf_merger_bp
 from views.pdf_splitter import pdf_splitter_bp
 from views.pdf_compressor import pdf_compressor_bp
+from views.img_converter import img_converter_bp
+from views.captcha import captcha_bp
 
 # Dosya temizleme
 from views.file_cleaner import cleanup_uploads_folder
@@ -21,6 +23,8 @@ app.register_blueprint(main_bp)
 app.register_blueprint(pdf_merger_bp)
 app.register_blueprint(pdf_splitter_bp)
 app.register_blueprint(pdf_compressor_bp)
+app.register_blueprint(img_converter_bp)
+app.register_blueprint(captcha_bp)
 
 # Start background cleanup thread
 cleanup_thread = threading.Thread(target=cleanup_uploads_folder, daemon=True)

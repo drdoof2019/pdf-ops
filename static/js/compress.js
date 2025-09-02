@@ -12,8 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressArea = document.getElementById('progress-area');
     const compressProgressBar = document.getElementById('compress-progress-bar');
     const progressText = document.getElementById('progress-text');
+    const captchaArea = document.getElementById('captcha-area');
+    const captchaQuestion = document.getElementById('captcha-question');
+    const captchaInput = document.getElementById('captcha-input');
 
     let uploadedFile = null; // Stores the single File object
+
+    // Load CAPTCHA on page load
+    loadCaptcha();
+
+    async function loadCaptcha() {
+        try {
+            const response = await fetch('/api/captcha');
+            const data = await response.json();
+            if (response.ok) {
+                captchaQuestion.textContent = data.question;
+                captchaArea.style.display = 'block';
+            } else {
+                showError('Failed to load CAPTCHA. Please refresh the page.');
+            }
+        } catch (error) {
+            showError('Failed to load CAPTCHA. Please check your network and refresh.');
+        }
+    }
 
     // --- Event Listeners for Drop Zone ---
     dropZone.addEventListener('click', () => {
@@ -102,6 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
     compressBtn.addEventListener('click', async () => {
         if (!uploadedFile) return;
 
+        if (!captchaInput.value) {
+            showError('Please solve the CAPTCHA before compressing.');
+            return;
+        }
+
         hideDownloadAndError();
         compressBtn.setAttribute('disabled', 'disabled');
         compressBtn.textContent = 'Compressing...';
@@ -113,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('file', uploadedFile);
         formData.append('level', compressionLevel.value);
+        formData.append('captcha_answer', captchaInput.value);
 
         try {
             const response = await fetch('/api/compress', {
@@ -133,6 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 3000);
             } else {
                 showError(data.error || 'An unknown error occurred.');
+                if (data.error && data.error.toLowerCase().includes('captcha')) {
+                    captchaInput.value = '';
+                    loadCaptcha();
+                }
             }
         } catch (error) {
             showError('Network error or server is unreachable.');
